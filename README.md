@@ -4,7 +4,7 @@ This project created a Minecraft: Bedrock Edition mod that modifies the probabil
 
 This mod increases the original 1/8000 probability by a default of 4000 times.
 
-The project is based on [LeviLamina](https://levimc.org/software/levilamina); see the [LeviLamina documentation](https://lamina.levimc.org/) for more information.
+The project is based on [LeviLamina](https://levimc.org/software/levilamina); see [LeviLamina Docs](https://lamina.levimc.org/) for more information.
 
 ## License
 

@@ -22,7 +22,7 @@
                 {
                     "type": "zip",
                     "urls": [
-                        "https://github.com/SkyEye-FAST/offer-flowers-faster-bedrock/releases/download/latest/offer-flowers-faster-windows-x64.zip"
+                        "https://{{tooth}}/releases/download/v{{version}}/offer-flowers-faster-windows-x64.zip"
                     ],
                     "placements": [
                         {
