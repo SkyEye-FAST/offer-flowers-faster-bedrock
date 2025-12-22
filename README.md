@@ -2,7 +2,7 @@
 
 This project created a Minecraft: Bedrock Edition mod that modifies the probability of iron golems offering poppies to baby villagers and copper golems, making it easier to observe the related phenomenon.
 
-This mod increases the original 1/8000 probability by a default of 4000 times.
+This mod uses a simpler way to increase the original 1/ 8000 probability, which is to call the `canUse()` function 4000 times when the game calls it. At this time, the probability of success is $1 - (\frac{7999}{8000})^{4000} ≈ 39.35\%$.
 
 The project is based on [LeviLamina](https://levimc.org/software/levilamina); see [LeviLamina Docs](https://lamina.levimc.org/) for more information.
 

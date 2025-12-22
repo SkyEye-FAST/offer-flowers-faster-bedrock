@@ -1,33 +1,10 @@
 #include "mod/OfferFlowersFaster.h"
 
-#include "ll/api/memory/Hook.h"
 #include "ll/api/mod/RegisterHelper.h"
-
-#include "mc/util/Random.h"
+#include "ll/api/memory/Hook.h"
 #include "mc/world/actor/ai/goal/OfferFlowerGoal.h"
 
-#include <algorithm>
-
 namespace offer_flowers_faster {
-OfferFlowersFaster& OfferFlowersFaster::getInstance() {
-    static OfferFlowersFaster instance;
-    return instance;
-}
-
-namespace {
-thread_local bool gOfferFlowerCanUseActive = false;
-thread_local bool gRandomHookReentry = false;
-constexpr int kOfferFlowerChanceMultiplier = 4000;
-
-class ScopedFlag {
-public:
-    explicit ScopedFlag(bool& flag) : mFlag(flag) { mFlag = true; }
-    ~ScopedFlag() { mFlag = false; }
-
-private:
-    bool& mFlag;
-};
-} // namespace
 
 LL_AUTO_TYPE_INSTANCE_HOOK(
     OfferFlowerGoalCanUseHook,
@@ -36,30 +13,20 @@ LL_AUTO_TYPE_INSTANCE_HOOK(
     &OfferFlowerGoal::$canUse,
     bool
 ) {
-    ScopedFlag guard(gOfferFlowerCanUseActive);
-    return origin();
-}
+    static constexpr int SPEEDUP_MULTIPLIER = 4000;
 
-LL_AUTO_TYPE_INSTANCE_HOOK(
-    RandomNextIntOfferFlowerHook,
-    ll::memory::HookPriority::Normal,
-    Random,
-    &Random::$nextInt,
-    int,
-    int bound
-) {
-    if (gOfferFlowerCanUseActive && !gRandomHookReentry && bound == 8000) {
-        ScopedFlag reentryGuard(gRandomHookReentry);
-
-        int adjustedBound = std::max(1, bound / kOfferFlowerChanceMultiplier);
-        if (origin(adjustedBound) == 0) {
-            return 0;
+    for (int attempt = 0; attempt < SPEEDUP_MULTIPLIER; ++attempt) {
+        if (origin()) {
+            return true;
         }
-        int fallback = origin(bound);
-        return fallback == 0 ? 1 : fallback;
     }
 
-    return origin(bound);
+    return false;
+}
+
+OfferFlowersFaster& OfferFlowersFaster::getInstance() {
+    static OfferFlowersFaster instance;
+    return instance;
 }
 
 bool OfferFlowersFaster::load() {
@@ -68,7 +35,7 @@ bool OfferFlowersFaster::load() {
 }
 
 bool OfferFlowersFaster::enable() {
-    getSelf().getLogger().debug("Enabling...");
+    getSelf().getLogger().info("OfferFlowersFaster enabled.");
     return true;
 }
 
