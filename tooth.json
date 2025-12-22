@@ -22,7 +22,7 @@
                 {
                     "type": "zip",
                     "urls": [
-                        "https://{{tooth}}/releases/download/v{{version}}/offer-flowers-faster-windows-x64.zip"
+                        "https://{{tooth}}/releases/download/v{{version}}/offer-flowers-faster-bedrock-windows-x64.zip"
                     ],
                     "placements": [
                         {
