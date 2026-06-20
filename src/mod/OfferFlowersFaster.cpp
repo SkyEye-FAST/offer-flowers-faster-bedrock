@@ -5,7 +5,6 @@
 #include "ll/api/Config.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "ll/api/memory/Hook.h"
-#include "mc/util/Random.h"
 #include "mc/world/actor/ai/goal/OfferFlowerGoal.h"
 
 namespace offer_flowers_faster {
@@ -19,8 +18,7 @@ struct Config {
     int speedupMultiplier = 4000;
 };
 
-std::atomic_int  chanceDenominator{OriginalChanceDenominator / 4000};
-thread_local int offerFlowerCanUseDepth = 0;
+std::atomic<float> chanceToStart{0.5F};
 
 LL_TYPE_INSTANCE_HOOK(
     OfferFlowerGoalCanUseHook,
@@ -29,24 +27,12 @@ LL_TYPE_INSTANCE_HOOK(
     &OfferFlowerGoal::$canUse,
     bool
 ) {
-    ++offerFlowerCanUseDepth;
+    float const originalChance   = mChanceToStart;
+    float const configuredChance = chanceToStart.load(std::memory_order_relaxed);
+    mChanceToStart = configuredChance;
     bool const result = origin();
-    --offerFlowerCanUseDepth;
+    mChanceToStart = originalChance;
     return result;
-}
-
-LL_TYPE_INSTANCE_HOOK(
-    RandomNextIntHook,
-    ll::memory::HookPriority::Normal,
-    Random,
-    static_cast<int (Random::*)(int)>(&Random::$nextInt),
-    int,
-    int bound
-) {
-    if (offerFlowerCanUseDepth > 0 && bound == OriginalChanceDenominator) {
-        bound = chanceDenominator.load(std::memory_order_relaxed);
-    }
-    return origin(bound);
 }
 
 } // namespace
@@ -74,25 +60,20 @@ bool OfferFlowersFaster::load() {
         return false;
     }
 
-    int const denominator =
-        (OriginalChanceDenominator + config.speedupMultiplier / 2) / config.speedupMultiplier;
-    chanceDenominator.store(denominator, std::memory_order_relaxed);
+    float const configuredChance =
+        static_cast<float>(config.speedupMultiplier) / static_cast<float>(OriginalChanceDenominator);
+    chanceToStart.store(configuredChance, std::memory_order_relaxed);
 
     getSelf().getLogger().info(
-        "Configured flower-offering chance: 1/{} (effective speedup: {:.3f}x).",
-        denominator,
-        static_cast<double>(OriginalChanceDenominator) / denominator
+        "Configured flower-offering chance: {:.6f} (speedup: {}x).",
+        configuredChance,
+        config.speedupMultiplier
     );
     return true;
 }
 
 bool OfferFlowersFaster::enable() {
-    if (RandomNextIntHook::hook() != 0) {
-        getSelf().getLogger().error("Failed to hook Random::nextInt(int).");
-        return false;
-    }
     if (OfferFlowerGoalCanUseHook::hook() != 0) {
-        RandomNextIntHook::unhook();
         getSelf().getLogger().error("Failed to hook OfferFlowerGoal::canUse().");
         return false;
     }
@@ -102,10 +83,8 @@ bool OfferFlowersFaster::enable() {
 }
 
 bool OfferFlowersFaster::disable() {
-    bool const canUseUnhooked  = OfferFlowerGoalCanUseHook::unhook();
-    bool const nextIntUnhooked = RandomNextIntHook::unhook();
-    if (!canUseUnhooked || !nextIntUnhooked) {
-        getSelf().getLogger().error("Failed to remove one or more hooks.");
+    if (!OfferFlowerGoalCanUseHook::unhook()) {
+        getSelf().getLogger().error("Failed to remove the OfferFlowerGoal::canUse() hook.");
         return false;
     }
 

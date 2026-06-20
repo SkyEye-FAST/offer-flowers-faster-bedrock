@@ -2,7 +2,7 @@
 
 This project created a Minecraft: Bedrock Edition mod that modifies the probability of iron golems offering poppies to baby villagers and copper golems, making it easier to observe the related phenomenon.
 
-The mod calls `OfferFlowerGoal::canUse()` only once. While that call is running, it changes the bound passed to `Random::nextInt(8000)` instead of repeating the whole goal check. With the default `4000` multiplier, the bound becomes `2`, so the original `1/8000` chance becomes exactly `1/2`.
+The mod calls `OfferFlowerGoal::canUse()` only once. While that call is running, it temporarily changes the goal's `mChanceToStart` from the original `1/8000` to the configured probability, then restores it. With the default `4000` multiplier, the chance becomes exactly `1/2`.
 
 ## Configuration
 
@@ -15,7 +15,7 @@ After the first start, edit `plugins/offer-flowers-faster/config/config.json`:
 }
 ```
 
-`speedupMultiplier` accepts integers from `1` (the original `1/8000` chance) through `8000` (always attempt to find a recipient). Because `Random::nextInt` requires an integer bound, values that do not divide `8000` exactly are rounded to the nearest available probability. The effective multiplier is written to the server log at startup.
+`speedupMultiplier` accepts integers from `1` (the original `1/8000` chance) through `8000` (always attempt to find a recipient). The configured probability is written to the server log at startup.
 
 The project is based on [LeviLamina](https://levimc.org/software/levilamina); see [LeviLamina Docs](https://lamina.levimc.org/) for more information.
 

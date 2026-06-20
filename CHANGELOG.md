@@ -9,5 +9,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Replace 4000 repeated `canUse()` calls with a scoped change to its `Random::nextInt(8000)` bound.
+- Replace 4000 repeated `canUse()` calls with a scoped change to the goal's `mChanceToStart` value.
 - Add a configurable `speedupMultiplier` with a default value of 4000.
