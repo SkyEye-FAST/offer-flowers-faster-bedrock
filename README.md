@@ -24,7 +24,7 @@ The project is based on [LeviLamina](https://levimc.org/software/levilamina); se
 The mod is released under the [Apache 2.0 license](LICENSE).
 
 ``` text
-  Copyright 2025 SkyEye_FAST
+  Copyright 2025-2026 SkyEye_FAST
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
